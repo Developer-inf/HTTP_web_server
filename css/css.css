@@ -1,0 +1,44 @@
+body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 99vw;
+    height: 98vh;
+}
+
+button {
+    padding: 20px 10px;
+    width: 100%;
+    margin: 10px 0;
+    color: rgb(66, 62, 255);
+    cursor: pointer;
+}
+
+a {
+    text-decoration: none;
+    width: 200px;
+    display: flex;
+    flex-direction: column;
+}
+
+.btns {
+    width: 200px;
+    display: flex;
+    flex-direction: column;
+}
+
+.flex {
+    display: flex;
+}
+
+.centerh {
+    justify-content: center;
+}
+
+.centerv {
+    align-items: center;
+}
+
+.vertical {
+    flex-direction: column;
+}

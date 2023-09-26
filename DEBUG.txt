@@ -1,0 +1,18 @@
+/add.cgi HTTP/1.1
+Host: localhost:8123
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:109.0) Gecko/20100101 Firefox/115.0
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8
+Accept-Language: ru-RU,ru;q=0.8,en-US;q=0.5,en;q=0.3
+Accept-Encoding: gzip, deflate, br
+Content-Type: application/x-www-form-urlencoded
+Content-Length: 56
+Origin: http://localhost:8123
+Connection: keep-alive
+Referer: http://localhost:8123/add-data
+Upgrade-Insecure-Requests: 1
+Sec-Fetch-Dest: document
+Sec-Fetch-Mode: navigate
+Sec-Fetch-Site: same-origin
+Sec-Fetch-User: ?1
+
+login=wqe&secret_word=123&password=U3%2B%7DgSSskpRH%7EZ2
