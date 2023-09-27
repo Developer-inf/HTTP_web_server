@@ -42,3 +42,13 @@ a {
 .vertical {
     flex-direction: column;
 }
+
+table {
+    border-collapse: collapse;
+}
+
+th, tr, td {
+    border: 1px solid black;
+    text-align: center;
+    min-width: 100px;
+}

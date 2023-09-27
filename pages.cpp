@@ -98,35 +98,52 @@ void render(int socket_fd, std::string &&filename, std::string &&header_type) {
 }
 
 void main_page(Request *r) {
-    std::string header_type = "html";
+    std::string header_type = "text/html";
     std::string filename = "html/main.html";
     render(r->socket_fd, std::move(filename), std::move(header_type));
 }
 
 void css_page(Request *r) {
-    std::string header_type = "css";
+    std::string header_type = "text/css";
     std::string filename = "css/css.css";
     render(r->socket_fd, std::move(filename), std::move(header_type));
 }
 
+void get_data_js_page(Request *r) {
+    std::string header_type = "text/javascript";
+    std::string filename = "js/get_data.js";
+    render(r->socket_fd, std::move(filename), std::move(header_type));
+}
+
 void test_page(Request *r) {
-    std::string header_type = "html";
+    std::string header_type = "text/html";
     std::string filename = "html/another.html";
     render(r->socket_fd, std::move(filename), std::move(header_type));
 }
 
 void add_data_page(Request *r) {
-    std::string header_type = "html";
+    std::string header_type = "text/html";
     std::string filename = "html/add_data.html";
     render(r->socket_fd, std::move(filename), std::move(header_type));
+}
+
+void check_data_page(Request *r) {
+    if (r->method == "POST") {
+        r->path = "/get.cgi";
+        ExecuteCGI(r);
+    } else {
+        std::string header_type = "text/html";
+        std::string filename = "html/check_data.html";
+        render(r->socket_fd, std::move(filename), std::move(header_type));
+    }
 }
 
 void proceed_cgi_page(Request *r) {
     if (r->method == "POST") {
         ExecuteCGI(r);
     } else {
+        std::string header_type = "text/html";
         std::string filename = "html/404_not_found.html";
-        std::string header_type = "html";
         render(r->socket_fd, std::move(filename), std::move(header_type));
     }
 }

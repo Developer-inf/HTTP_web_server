@@ -48,7 +48,8 @@ int main(int argc, char const *argv[])
         
         fprintf(stderr, "[SUCCESS] Record successfulyy added\n");
         
-        std::string set_cookie('\0', 100);
+        std::string set_cookie;
+        set_cookie.reserve(100);
         for (const auto &pair : keys_values) {
             set_cookie += "Set-Cookie: " + pair.first + "=" + pair.second + "\r\n";
         }
