@@ -9,6 +9,7 @@
 #include "CGI/add.cpp"
 #include "CGI/get.cpp"
 
+#define DELIMS "--------------------"
 
 // char **SplitPOSTBody(Request *r) {
 //     char **ans = nullptr;
@@ -49,7 +50,6 @@ std::map<std::string, std::string> SplitPOSTBody(Request *r) {
     size_t eq_char = 0, key_start = 0;
     for (int and_char : args) {
         eq_char = r->body.find_first_of("=\0\r\n", key_start);
-        printf("eq char: %d\n", eq_char);
         ans[r->body.substr(key_start, eq_char - key_start)] = r->body.substr(eq_char + 1, and_char - eq_char - 1);
         key_start = and_char + 1;
     }

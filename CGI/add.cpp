@@ -54,6 +54,7 @@ int AddCGI(Request &req, std::map<std::string, std::string> &keys_values)
         
         fprintf(stderr, "[SUCCESS] Record successfulyy added\n");
         
+        keys_values.erase("path");
         std::string set_cookie;
         set_cookie.reserve(100);
         for (const auto &[key, val] : keys_values) {

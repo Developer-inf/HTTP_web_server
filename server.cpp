@@ -36,7 +36,7 @@ Request *ParseRequest(std::string &&request, int socket_fd) {
     if ((idx = request.find("Referer")) > 0) {
         idx = request.find(' ', idx) + 1;
         r.referer = request.substr(idx, request.find('\n', idx) - idx);
-        printf("\n\nREFERER:\t%s\n\n", r.referer.c_str());
+        // printf("\n\nREFERER:\t%s\n\n", r.referer.c_str());
     } else { r.referer = ""; }
     
     idx = request.find("\r\n\r\n");
@@ -113,7 +113,7 @@ int main(int argc, char const *argv[])
         
         std::fill_n(buffer, sizeof(buffer), 0);
         valread = read(new_socket, buffer, 1024);
-        printf("RECIEVED:\n\n%s\n", buffer);
+        printf(DELIMS "RECIEVED:" DELIMS "\n\n%s\n", buffer);
         
         Request *request = ParseRequest(std::string(buffer), new_socket);
         // MakeResponse(request);
