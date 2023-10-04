@@ -5,9 +5,9 @@
 // #define TRY try {
 // #define CATCH } catch (std::exception ex) { fprintf(stderr, "%s\n", ex.what()); return 1; }
 
-const std::string tablename("test");
 
 void CheckValuesForExists(std::map<std::string, std::string> &values, pqxx::connection &conn) {
+    const std::string tablename("test");
     std::string query = "SELECT * FROM " + tablename + " WHERE str='" + values["str"] + "' and num=" + values["num"] + ";";
     pqxx::work worker(conn);
     pqxx::result res(worker.exec(query));
@@ -18,6 +18,7 @@ void CheckValuesForExists(std::map<std::string, std::string> &values, pqxx::conn
 }
 
 void InsertValuesInDB(std::map<std::string, std::string> &values, pqxx::connection &conn) {
+    const std::string tablename("test");
     std::string query = "INSERT INTO " + tablename + " (str, num) VALUES ('" + values["str"] + "', " + values["num"] + ");";
     pqxx::work worker(conn);
     
@@ -25,8 +26,13 @@ void InsertValuesInDB(std::map<std::string, std::string> &values, pqxx::connecti
     worker.commit();
 }
 
-int main(int argc, char const *argv[])
+int AddCGI(Request &req, std::map<std::string, std::string> &keys_values)
 {
+    fprintf(stderr, "Keys: values\n");
+    for (const auto &[key, val] : keys_values) {
+        fprintf(stderr, "%s: %s\n", key.c_str(), val.c_str());
+    }
+    
     try {
         pqxx::connection conn("dbname = postgres user = paul password = postgres hostaddr = 127.0.0.1 port = 5432");
         
@@ -36,12 +42,12 @@ int main(int argc, char const *argv[])
             throw "Cant open test db";
         }
         
-        std::map<std::string, std::string> keys_values;
-        for (size_t i = 1; i < argc; i++) {
-            std::string param(argv[i]);
-            int idx = param.find('=');
-            keys_values.emplace(param.substr(0, idx), param.substr(idx + 1));
-        }
+        // std::map<std::string, std::string> keys_values;
+        // for (size_t i = 1; i < argc; i++) {
+        //     std::string param(argv[i]);
+        //     int idx = param.find('=');
+        //     keys_values.emplace(param.substr(0, idx), param.substr(idx + 1));
+        // }
         
         CheckValuesForExists(keys_values, conn);
         InsertValuesInDB(keys_values, conn);
@@ -50,8 +56,8 @@ int main(int argc, char const *argv[])
         
         std::string set_cookie;
         set_cookie.reserve(100);
-        for (const auto &pair : keys_values) {
-            set_cookie += "Set-Cookie: " + pair.first + "=" + pair.second + "\r\n";
+        for (const auto &[key, val] : keys_values) {
+            set_cookie += "Set-Cookie: " + key + "=" + val + "\r\n";
         }
         
         
@@ -61,10 +67,6 @@ int main(int argc, char const *argv[])
                 "<script>window.location.href = \"http://localhost:42069/add-data\";</script>\r\n",
                     set_cookie.c_str());
         // printf("window.location.href = 'http://www.google.com';\r\n");
-        
-        for (size_t i = 0; i < argc; i++) {
-            fprintf(stderr, "arg #%ld: %s\n", i, argv[i]);
-        }
     } catch (char const*ex) {
         fprintf(stderr, "[ERROR] %s\n", ex);
         printf( "HTTP/1.1 500 Internal Server Error\r\n"

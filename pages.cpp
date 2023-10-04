@@ -6,46 +6,71 @@
 #include <unistd.h>
 #include "request.h"
 #include "errors.h"
+#include "CGI/add.cpp"
+#include "CGI/get.cpp"
 
 
-char **SplitPOSTBody(Request *r) {
-    char **ans = nullptr;
+// char **SplitPOSTBody(Request *r) {
+//     char **ans = nullptr;
+//     std::vector<int> args;
+    
+//     size_t i = 0, j = 0;
+//     while (i < r->body.length()) {
+//         if (r->body[i] == '&') {
+//             args.emplace_back(i);
+//         }
+//         i++;
+//     }
+    
+//     i = 1;
+//     ans = new char *[args.size() + 3];
+//     for (int pos : args) {
+//         ans[i] = strdup(r->body.substr(j, pos - j).c_str());
+//         j = pos + 1;
+//         i++;
+//     }
+//     ans[i++] = strdup(r->body.substr(j).c_str());
+//     ans[i] = NULL;
+//     ans[0] = strdup(r->path.c_str());
+    
+//     return ans;
+// }
+
+std::map<std::string, std::string> SplitPOSTBody(Request *r) {
+    std::map<std::string, std::string> ans;
     std::vector<int> args;
     
-    size_t i = 0, j = 0;
-    while (i < r->body.length()) {
-        if (r->body[i] == '&') {
+    for (size_t i = 0; i <= r->body.size(); i++) {
+        if (r->body[i] == '&' || r->body[i] == '\0' || r->body[i] == '\n' || r->body[i] == '\r') {
             args.emplace_back(i);
         }
-        i++;
     }
     
-    i = 1;
-    ans = new char *[args.size() + 3];
-    for (int pos : args) {
-        ans[i] = strdup(r->body.substr(j, pos - j).c_str());
-        j = pos + 1;
-        i++;
+    size_t eq_char = 0, key_start = 0;
+    for (int and_char : args) {
+        eq_char = r->body.find_first_of("=\0\r\n", key_start);
+        printf("eq char: %d\n", eq_char);
+        ans[r->body.substr(key_start, eq_char - key_start)] = r->body.substr(eq_char + 1, and_char - eq_char - 1);
+        key_start = and_char + 1;
     }
-    ans[i++] = strdup(r->body.substr(j).c_str());
-    ans[i] = NULL;
-    ans[0] = strdup(r->path.c_str());
+    ans["path"] = r->path;
     
     return ans;
 }
 
 void ExecuteCGI(Request *r) {
     r->path = "./CGI/" + r->path.substr(1);
-    // std::string body = rest.substr(idx);
-    char **vec_body = SplitPOSTBody(r);
     
-    fprintf(stdout, "Execvp %s\n", r->path.c_str());
+    std::map<std::string, std::string> post_body = SplitPOSTBody(r);
     dup2(r->socket_fd, STDOUT_FILENO);
-    // dup2(socket_fd, STDIN_FILENO);
-    execvp(r->path.c_str(), vec_body);
     
-    perror("Execvp");
-    exit(EXECVP_ERROR);
+    if (r->path == "./CGI/get.cgi") {
+        GetCGI(*r, post_body);
+    } else if (r->path == "./CGI/add.cgi") {
+        AddCGI(*r, post_body);
+    }
+    
+    exit(0);
 }
 
 std::string get_daytime()

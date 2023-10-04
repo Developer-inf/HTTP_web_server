@@ -3,9 +3,9 @@
 #include <map>
 #include <string>
 
-const std::string tablename("test");
 
 std::map<std::string, std::string> get_data(pqxx::connection &conn) {
+    const std::string tablename("test");
     std::string query = "SELECT * FROM " + tablename + ";";
     pqxx::work worker(conn);
     pqxx::result res(worker.exec(query));
@@ -20,7 +20,7 @@ std::map<std::string, std::string> get_data(pqxx::connection &conn) {
     // return std::map<std::string, std::string>();
 }
 
-int main(int argc, char const *argv[])
+int GetCGI(Request &req, std::map<std::string, std::string> &keys_values)
 {
     try {
         pqxx::connection conn("dbname = postgres user = paul password = postgres hostaddr = 127.0.0.1 port = 5432");
@@ -36,8 +36,8 @@ int main(int argc, char const *argv[])
         
         std::string json("{");
         json.reserve(100);
-        for (auto pair : keys_values) {
-            json += "\"" + pair.first + "\": \"" + pair.second + "\",";
+        for (const auto &[key, val] : keys_values) {
+            json += "\"" + key + "\": \"" + val + "\",";
         }
         json[json.size() - 1] = '}';
         // json += "}";
