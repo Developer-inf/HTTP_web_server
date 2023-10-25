@@ -6,46 +6,104 @@
 #include <unistd.h>
 #include "request.h"
 #include "errors.h"
+#include "CGI/add.cpp"
+#include "CGI/get.cpp"
 
+#define DELIMS "--------------------"
 
-char **SplitPOSTBody(Request *r) {
-    char **ans = nullptr;
+// char **SplitPOSTBody(Request *r) {
+//     char **ans = nullptr;
+//     std::vector<int> args;
+    
+//     size_t i = 0, j = 0;
+//     while (i < r->body.length()) {
+//         if (r->body[i] == '&') {
+//             args.emplace_back(i);
+//         }
+//         i++;
+//     }
+    
+//     i = 1;
+//     ans = new char *[args.size() + 3];
+//     for (int pos : args) {
+//         ans[i] = strdup(r->body.substr(j, pos - j).c_str());
+//         j = pos + 1;
+//         i++;
+//     }
+//     ans[i++] = strdup(r->body.substr(j).c_str());
+//     ans[i] = NULL;
+//     ans[0] = strdup(r->path.c_str());
+    
+//     return ans;
+// }
+
+void escaped_print(std::string &&str) {
+    for (size_t i = 0; i < str.size(); i++) {
+        u_char c = str[i];
+        switch (c)
+        {
+            case '\\':
+                printf("\\\\");
+                break;
+            case '\n':
+                printf("\\n");
+                break;
+            case '\r':
+                printf("\\r");
+                break;
+            case '\t':
+                printf("\\t");
+                break;
+            case '\0':
+                printf("\\0");
+                break;
+            
+            default:
+                if (isprint(c)) {
+                    putchar(c);
+                } else {
+                    printf("\\x%X", c);
+                }
+                break;
+        }
+    }
+    printf("\n");
+}
+
+std::map<std::string, std::string> SplitPOSTBody(Request *r) {
+    std::map<std::string, std::string> ans;
     std::vector<int> args;
     
-    size_t i = 0, j = 0;
-    while (i < r->body.length()) {
-        if (r->body[i] == '&') {
+    for (size_t i = 0; i <= r->body.size(); i++) {
+        if (r->body[i] == '&' || r->body[i] == '\0' || r->body[i] == '\n' || r->body[i] == '\r') {
             args.emplace_back(i);
         }
-        i++;
     }
     
-    i = 1;
-    ans = new char *[args.size() + 3];
-    for (int pos : args) {
-        ans[i] = strdup(r->body.substr(j, pos - j).c_str());
-        j = pos + 1;
-        i++;
+    size_t eq_char = 0, key_start = 0;
+    for (int and_char : args) {
+        eq_char = r->body.find_first_of("=\0\r\n", key_start);
+        ans[r->body.substr(key_start, eq_char - key_start)] = r->body.substr(eq_char + 1, and_char - eq_char - 1);
+        key_start = and_char + 1;
     }
-    ans[i++] = strdup(r->body.substr(j).c_str());
-    ans[i] = NULL;
-    ans[0] = strdup(r->path.c_str());
+    ans["path"] = r->path;
     
     return ans;
 }
 
 void ExecuteCGI(Request *r) {
     r->path = "./CGI/" + r->path.substr(1);
-    // std::string body = rest.substr(idx);
-    char **vec_body = SplitPOSTBody(r);
     
-    fprintf(stdout, "Execvp %s\n", r->path.c_str());
+    std::map<std::string, std::string> post_body = SplitPOSTBody(r);
     dup2(r->socket_fd, STDOUT_FILENO);
-    // dup2(socket_fd, STDIN_FILENO);
-    execvp(r->path.c_str(), vec_body);
     
-    perror("Execvp");
-    exit(EXECVP_ERROR);
+    if (r->path == "./CGI/get.cgi") {
+        GetCGI(*r, post_body);
+    } else if (r->path == "./CGI/add.cgi") {
+        AddCGI(*r, post_body);
+    }
+    
+    exit(0);
 }
 
 std::string get_daytime()
@@ -98,35 +156,77 @@ void render(int socket_fd, std::string &&filename, std::string &&header_type) {
 }
 
 void main_page(Request *r) {
-    std::string header_type = "html";
+    std::string header_type = "text/html";
     std::string filename = "html/main.html";
     render(r->socket_fd, std::move(filename), std::move(header_type));
 }
 
 void css_page(Request *r) {
-    std::string header_type = "css";
+    std::string header_type = "text/css";
     std::string filename = "css/css.css";
     render(r->socket_fd, std::move(filename), std::move(header_type));
 }
 
+void get_data_js_page(Request *r) {
+    std::string header_type = "text/javascript";
+    std::string filename = "js/get_data.js";
+    render(r->socket_fd, std::move(filename), std::move(header_type));
+}
+
 void test_page(Request *r) {
-    std::string header_type = "html";
+    std::string header_type = "text/html";
     std::string filename = "html/another.html";
     render(r->socket_fd, std::move(filename), std::move(header_type));
 }
 
 void add_data_page(Request *r) {
-    std::string header_type = "html";
+    std::string header_type = "text/html";
     std::string filename = "html/add_data.html";
     render(r->socket_fd, std::move(filename), std::move(header_type));
+}
+
+void check_data_page(Request *r) {
+    if (r->method == "POST") {
+        r->path = "/get.cgi";
+        ExecuteCGI(r);
+    } else {
+        std::string header_type = "text/html";
+        std::string filename = "html/check_data.html";
+        render(r->socket_fd, std::move(filename), std::move(header_type));
+    }
+}
+
+void exec_command(Request *r) {
+    std::string params = r->path.substr(6);
+    std::vector<std::string> args;
+    int beg = 0;
+    for (size_t i = 0; i <= params.size(); i++) {
+        if (params[i] == '&' || i == params.size()) {
+            args.emplace_back(params.substr(beg, i - beg));
+            beg = i + 1;
+        }
+    }
+    char **out = new char*[args.size() + 1];
+    printf("PARAMS: %s\n", params.c_str());
+    for (size_t i = 0; i < args.size(); i++) {
+        if (args[i].find("%3") != std::string::npos) {
+            args[i].replace(args[i].find("%3"), 6, ">>");
+        }
+        out[i] = strdup(args[i].c_str());
+    }
+    out[args.size()] = NULL;
+    send(r->socket_fd, "HTTP/1.1 200 Ok", 16, 0);
+    
+    execvp(out[0], out);
+    perror("Execv");
 }
 
 void proceed_cgi_page(Request *r) {
     if (r->method == "POST") {
         ExecuteCGI(r);
     } else {
+        std::string header_type = "text/html";
         std::string filename = "html/404_not_found.html";
-        std::string header_type = "html";
         render(r->socket_fd, std::move(filename), std::move(header_type));
     }
 }

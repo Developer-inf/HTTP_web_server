@@ -7,13 +7,14 @@
     <title>Add Data</title>
 </head>
 <body>
-    <form action="add.cgi" method="post" class="flex centerv centerh vertical">
-        <p><input type="text" name="str" id="str" placeholder="str"></p>
-        <p><input type="number" name="num" id="num" placeholder="num"></p>
+    <a href="/" class="back_btn">Вернуться</a>
+    <form action="add.cgi" method="post" class="flex centerv vertical add_form">
+        <input type="text" maxlength="30" required name="str" id="str" placeholder="str" class="w100 h10">
+        <input type="number" max="2147000000" required name="num" id="num" placeholder="num" class="w100 h10">
         <!-- <p><input type="text" name="login" placeholder="login"></p>
         <p><input type="text" name="secret_word" placeholder="secret_word"></p>
         <p><input type="password" name="password" placeholder="password"></p> -->
-        <p><input type="submit" value="Добавить"></p>
+        <input type="submit" value="Добавить" class="submit_btn w100 h10">
     </form>
 </body>
 </html>

@@ -1,0 +1,6 @@
+.git
+docker-compose.yaml
+Dockerfile
+create_fill_db.sh
+migrations
+.dockerignore

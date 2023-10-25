@@ -42,3 +42,47 @@ a {
 .vertical {
     flex-direction: column;
 }
+
+table {
+    border-collapse: collapse;
+}
+
+th, tr, td {
+    border: 1px solid black;
+    text-align: center;
+    min-width: 100px;
+}
+
+.back_btn {
+    position: absolute;
+    width: fit-content;
+    left: 50px;
+    top: 20px;
+    border: 1px solid black;
+    border-radius: 5px;
+    text-align: center;
+    padding: 10px 20px;
+    
+}
+
+.back_btn:visited {
+    color: rgb(0, 91, 211);
+}
+
+.submit_btn {
+    width: 100%;
+}
+
+.add_form {
+    height: 10vh;
+    width: 15vw;
+    justify-content: space-between;
+}
+
+.w100 {
+    width: 100%;
+}
+
+input {
+    box-sizing: border-box;
+}

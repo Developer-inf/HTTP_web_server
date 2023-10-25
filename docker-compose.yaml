@@ -1,0 +1,26 @@
+# Use postgres/example user/password credentials
+version: '3.8'
+
+services:
+  main_app:
+    container_name: main_app
+    build: ./
+    ports:
+      - 42069:42069
+
+  db:
+    container_name: db
+    working_dir: /db_app
+    image: postgres:alpine3.18
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 123
+    ports:
+      - 5432:5432
+    volumes:
+      - db_data:/var/lib/postgresql/data
+
+
+volumes:
+  db_data:
