@@ -1,50 +1,54 @@
 #include <iostream>
 #include <pqxx/pqxx>
-#include <map>
+#include <vector>
 #include <string>
+#include "../request.h"
+#include "../config/db_config.h"
 
+typedef std::vector<std::pair<std::string, std::string>> request_result;
 
-std::map<std::string, std::string> get_data(pqxx::connection &conn) {
-    const std::string tablename("test");
-    std::string query = "SELECT * FROM " + tablename + ";";
+request_result get_data(pqxx::connection &conn) {
+    std::string query = "SELECT * FROM " + db_tablename + ";";
     pqxx::work worker(conn);
     pqxx::result res(worker.exec(query));
-    std::map<std::string, std::string> ret;
+    request_result ret;
+    ret.reserve(res.size() * sizeof(std::pair<std::string, std::string>));
     
     // for (auto row = res.begin(); row != res.end(); row++) {
     for (auto row : res) {
-        ret.emplace(row[1].as<std::string>(), row[2].as<std::string>());
+        ret.emplace_back(row[1].as<std::string>(), row[2].as<std::string>());
     }
     
     return ret;
     // return std::map<std::string, std::string>();
 }
 
-int GetCGI(Request &req, std::map<std::string, std::string> &keys_values)
-{
+int GetCGI(Request &req, std::map<std::string, std::string> &keys_values) {
     try {
-        pqxx::connection conn("dbname = postgres user = paul password = postgres hostaddr = 127.0.0.1 port = 5432");
+        const std::string conn_params = "dbname = " + db_dbname + " user = " + db_user + " password = " + db_password + 
+                                        " host = " + db_hostaddr + " port = " + db_port;
+        pqxx::connection conn(conn_params);
+        
         
         if (conn.is_open()) {
-            fprintf(stderr, "[SUCCESS] Database \"test\" successfully opened!\n");
+            fprintf(stderr, "[SUCCESS] Database \"postgres\" successfully opened!\n");
         } else {
             throw "Cant open test db";
         }
         
-        std::map<std::string, std::string> keys_values = get_data(conn);
+        request_result keys_values = get_data(conn);
         // std::map<std::string, std::string> keys_values;
         
-        std::string json("{");
-        json.reserve(100);
+        std::string response;
+        response.reserve(100);
         for (const auto &[key, val] : keys_values) {
-            json += "\"" + key + "\": \"" + val + "\",";
+            response += key + ';' + val + '\n';
         }
-        json[json.size() - 1] = '}';
-        // json += "}";
-        
+        response = response.substr(0, response.size() - 1);
         printf( "HTTP/1.1 200 OK\r\n"
-                "Content-Type: application/json\r\n\r\n"
-                "%s\r\n", json.c_str());
+                "Content-Type: text/plain\r\n"
+                "Content-Length: %d\r\n\r\n"
+                "%s", response.size(), response.c_str());
         // printf("window.location.href = 'http://www.google.com';\r\n");
     } catch (char const *ex) {
         fprintf(stderr, "[ERROR] %s\n", ex);

@@ -1,14 +1,15 @@
 #include <iostream>
 #include <map>
 #include <pqxx/pqxx>
+#include "../request.h"
+#include "../config/db_config.h"
 
 // #define TRY try {
 // #define CATCH } catch (std::exception ex) { fprintf(stderr, "%s\n", ex.what()); return 1; }
 
 
 void CheckValuesForExists(std::map<std::string, std::string> &values, pqxx::connection &conn) {
-    const std::string tablename("test");
-    std::string query = "SELECT * FROM " + tablename + " WHERE str='" + values["str"] + "' and num=" + values["num"] + ";";
+    std::string query = "SELECT * FROM " + db_tablename + " WHERE str='" + values["str"] + "' and num=" + values["num"] + ";";
     pqxx::work worker(conn);
     pqxx::result res(worker.exec(query));
     
@@ -18,23 +19,23 @@ void CheckValuesForExists(std::map<std::string, std::string> &values, pqxx::conn
 }
 
 void InsertValuesInDB(std::map<std::string, std::string> &values, pqxx::connection &conn) {
-    const std::string tablename("test");
-    std::string query = "INSERT INTO " + tablename + " (str, num) VALUES ('" + values["str"] + "', " + values["num"] + ");";
+    std::string query = "INSERT INTO " + db_tablename + " (str, num) VALUES ('" + values["str"] + "', " + values["num"] + ");";
     pqxx::work worker(conn);
     
     worker.exec(query);
     worker.commit();
 }
 
-int AddCGI(Request &req, std::map<std::string, std::string> &keys_values)
-{
+int AddCGI(Request &req, std::map<std::string, std::string> &keys_values) {
     fprintf(stderr, "Keys: values\n");
     for (const auto &[key, val] : keys_values) {
         fprintf(stderr, "%s: %s\n", key.c_str(), val.c_str());
     }
     
     try {
-        pqxx::connection conn("dbname = postgres user = paul password = postgres hostaddr = 127.0.0.1 port = 5432");
+        const std::string conn_params = "dbname = " + db_dbname + " user = " + db_user + " password = " + db_password + 
+                                        " hostaddr = " + db_hostaddr + " port = " + db_port;
+        pqxx::connection conn(conn_params);
         
         if (conn.is_open()) {
             fprintf(stderr, "[SUCCESS] Database \"test\" successfully opened!\n");

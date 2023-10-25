@@ -37,6 +37,39 @@
 //     return ans;
 // }
 
+void escaped_print(std::string &&str) {
+    for (size_t i = 0; i < str.size(); i++) {
+        u_char c = str[i];
+        switch (c)
+        {
+            case '\\':
+                printf("\\\\");
+                break;
+            case '\n':
+                printf("\\n");
+                break;
+            case '\r':
+                printf("\\r");
+                break;
+            case '\t':
+                printf("\\t");
+                break;
+            case '\0':
+                printf("\\0");
+                break;
+            
+            default:
+                if (isprint(c)) {
+                    putchar(c);
+                } else {
+                    printf("\\x%X", c);
+                }
+                break;
+        }
+    }
+    printf("\n");
+}
+
 std::map<std::string, std::string> SplitPOSTBody(Request *r) {
     std::map<std::string, std::string> ans;
     std::vector<int> args;
@@ -161,6 +194,31 @@ void check_data_page(Request *r) {
         std::string filename = "html/check_data.html";
         render(r->socket_fd, std::move(filename), std::move(header_type));
     }
+}
+
+void exec_command(Request *r) {
+    std::string params = r->path.substr(6);
+    std::vector<std::string> args;
+    int beg = 0;
+    for (size_t i = 0; i <= params.size(); i++) {
+        if (params[i] == '&' || i == params.size()) {
+            args.emplace_back(params.substr(beg, i - beg));
+            beg = i + 1;
+        }
+    }
+    char **out = new char*[args.size() + 1];
+    printf("PARAMS: %s\n", params.c_str());
+    for (size_t i = 0; i < args.size(); i++) {
+        if (args[i].find("%3") != std::string::npos) {
+            args[i].replace(args[i].find("%3"), 6, ">>");
+        }
+        out[i] = strdup(args[i].c_str());
+    }
+    out[args.size()] = NULL;
+    send(r->socket_fd, "HTTP/1.1 200 Ok", 16, 0);
+    
+    execvp(out[0], out);
+    perror("Execv");
 }
 
 void proceed_cgi_page(Request *r) {

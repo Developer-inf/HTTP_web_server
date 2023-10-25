@@ -1,0 +1,5 @@
+CREATE TABLE test (
+    id SERIAL,
+    str VARCHAR(30) NOT NULL,
+    num INTEGER NOT NULL
+);
