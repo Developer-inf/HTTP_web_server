@@ -34,7 +34,7 @@ int AddCGI(Request &req, std::map<std::string, std::string> &keys_values) {
     
     try {
         const std::string conn_params = "dbname = " + db_dbname + " user = " + db_user + " password = " + db_password + 
-                                        " hostaddr = " + db_hostaddr + " port = " + db_port;
+                                        " host = " + db_hostaddr + " port = " + db_port;
         pqxx::connection conn(conn_params);
         
         if (conn.is_open()) {
