@@ -56,18 +56,19 @@ int AddCGI(Request &req, std::map<std::string, std::string> &keys_values) {
         fprintf(stderr, "[SUCCESS] Record successfulyy added\n");
         
         keys_values.erase("path");
-        std::string set_cookie;
-        set_cookie.reserve(100);
-        for (const auto &[key, val] : keys_values) {
-            set_cookie += "Set-Cookie: " + key + "=" + val + "\r\n";
-        }
+        // std::string set_cookie;
+        // set_cookie.reserve(100);
+        // for (const auto &[key, val] : keys_values) {
+        //     set_cookie += "Set-Cookie: " + key + "=" + val + "\r\n";
+        // }
         
         
         printf( "HTTP/1.1 200 OK\r\n"
-                "%s" // set cookie
+                // "%s" // set cookie
                 "Content-Type: text/html\r\n\r\n"
-                "<script>window.location.href = \"http://localhost:42069/add-data\";</script>\r\n",
-                    set_cookie.c_str());
+                "<script>window.location.href = \"http://localhost:42069/add-data\";</script>\r\n"
+                );/*
+                    ,set_cookie.c_str()); /**/
         // printf("window.location.href = 'http://www.google.com';\r\n");
     } catch (char const*ex) {
         fprintf(stderr, "[ERROR] %s\n", ex);

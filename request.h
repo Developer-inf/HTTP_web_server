@@ -17,7 +17,7 @@ void parse_first_line(std::string &method, std::string &path, std::string &versi
     req = req.substr(r + 2);
 }
 
-void parse_header(std::map<std::string, std::string> &header, std::string &req) {
+void parse_header(std::map<std::string, std::string> &header, std::map<std::string, std::string> &cookie, std::string &req) {
     std::string line = std::move(req.substr(0, req.find('\n')));
     while (line.size() - 1 > 0) {
         size_t pos = line.find(':');
@@ -28,6 +28,23 @@ void parse_header(std::map<std::string, std::string> &header, std::string &req) 
         req = std::move(req.substr(line.size() + 1));
         line = std::move(req.substr(0, req.find('\n')));
     }
+    if (!header.contains("Cookie")) {
+        cookie.clear();
+    } else {
+        std::string key = "", val = "";
+        std::string cookie_line = std::move(header["Cookie"]);
+        int start = 0, eq = 0;
+        for (int i = 0; i <= cookie_line.size(); i++) {
+            if (cookie_line[i] == '=') {
+                eq = i;
+                key = cookie_line.substr(start, i - start);
+            } else if (cookie_line[i] == ';' || i == cookie_line.size()) {
+                val = cookie_line.substr(eq + 1, i - eq - 1);
+                start = i + 2;
+                cookie.insert(std::make_pair(key, val));
+            }
+        }
+    }
 }
 
 class Request {
@@ -36,6 +53,7 @@ public:
     std::string path;
     std::string version;
     std::map<std::string, std::string> header;
+    std::map<std::string, std::string> cookie;
     std::string body;
     int socket_fd;
     
@@ -52,7 +70,7 @@ Request::Request(std::string &&req, int socket_fd) {
     }
     
     parse_first_line(method, path, version, req);
-    parse_header(header, req);
+    parse_header(header, cookie, req);
     try {
         body = req.substr(2);
     }

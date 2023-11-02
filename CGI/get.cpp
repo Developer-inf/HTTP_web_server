@@ -47,7 +47,7 @@ int GetCGI(Request &req, std::map<std::string, std::string> &keys_values) {
         response = response.substr(0, response.size() - 1);
         printf( "HTTP/1.1 200 OK\r\n"
                 "Content-Type: text/plain\r\n"
-                "Content-Length: %d\r\n\r\n"
+                "Content-Length: %ld\r\n\r\n"
                 "%s", response.size(), response.c_str());
         // printf("window.location.href = 'http://www.google.com';\r\n");
     } catch (char const *ex) {

@@ -116,6 +116,13 @@ int main(int argc, char const *argv[])
         fprintf(stderr, DELIMS "RECIEVED:" DELIMS "\n\n%s\n", buffer);
         
         Request request = Request(std::string(buffer), new_socket);
+        std::vector<std::string> allowed_urls = { "/sign-in", "/css.css", "/favicon.ico" };
+        
+        if (request.cookie.empty() && std::find(allowed_urls.begin(), allowed_urls.end(), request.path) == allowed_urls.end()) {
+            render(request.socket_fd, "html/login.html", "text/html");
+            return 0;
+        }
+        
         // MakeResponse(request);
         UrlToPage(&request);
         

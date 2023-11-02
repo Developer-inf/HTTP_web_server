@@ -4,6 +4,7 @@
 #include <vector>
 #include <string.h>
 #include <unistd.h>
+#include <pqxx/pqxx>
 #include "request.h"
 #include "errors.h"
 #include "CGI/add.cpp"
@@ -155,36 +156,6 @@ void render(int socket_fd, std::string &&filename, std::string &&header_type) {
     fprintf(stdout, "SENT:\n\n%s\n\n", header.c_str());
 }
 
-void main_page(Request *r) {
-    std::string header_type = "text/html";
-    std::string filename = "html/main.html";
-    render(r->socket_fd, std::move(filename), std::move(header_type));
-}
-
-void css_page(Request *r) {
-    std::string header_type = "text/css";
-    std::string filename = "css/css.css";
-    render(r->socket_fd, std::move(filename), std::move(header_type));
-}
-
-void get_data_js_page(Request *r) {
-    std::string header_type = "text/javascript";
-    std::string filename = "js/get_data.js";
-    render(r->socket_fd, std::move(filename), std::move(header_type));
-}
-
-void test_page(Request *r) {
-    std::string header_type = "text/html";
-    std::string filename = "html/another.html";
-    render(r->socket_fd, std::move(filename), std::move(header_type));
-}
-
-void add_data_page(Request *r) {
-    std::string header_type = "text/html";
-    std::string filename = "html/add_data.html";
-    render(r->socket_fd, std::move(filename), std::move(header_type));
-}
-
 void check_data_page(Request *r) {
     if (r->method == "POST") {
         r->path = "/get.cgi";
@@ -193,6 +164,45 @@ void check_data_page(Request *r) {
         std::string header_type = "text/html";
         std::string filename = "html/check_data.html";
         render(r->socket_fd, std::move(filename), std::move(header_type));
+    }
+}
+
+std::pair<std::string, std::string> get_login_password(std::string &body) {
+    int delim = body.find('&');
+    
+    int eq = body.find_first_of('=', 0);
+    std::string login = body.substr(eq + 1, delim - eq - 1);
+    
+    eq = body.find_first_of('=', delim);
+    std::string password = body.substr(eq + 1, body.size() - eq - 1);
+    
+    return std::make_pair(login, password);
+}
+
+void sign_in(Request *r) {
+    try {
+        const std::string conn_params = "dbname = " + db_dbname + " user = " + db_user + " password = " + db_password + 
+                                        " host = " + db_hostaddr + " port = " + db_port;
+        pqxx::connection conn(conn_params);
+        auto [login, pass] = get_login_password(r->body);
+        std::string query = "SELECT * FROM " + db_users_tablename + " WHERE login = '" + login + "' and password = '" + pass + "';";
+        pqxx::work worker(conn);
+        pqxx::result res(worker.exec(query));
+        if (res.size() < 1) {
+            throw("User doesn't exist!");
+        }
+        std::string session_id = std::to_string(rand());
+        std::string ans = "HTTP/1.1 200 Ok\r\nSet-Cookie: session_id=" + session_id + "; Max-Age=300\r\n"
+                "Content-Type: text/html\r\n\r\n"
+                "<script>window.location.href = \"http://localhost:42069/\";</script>\r\n";
+        send(r->socket_fd, ans.c_str(), ans.size(), 0);
+    } catch (char const*ex) {
+        fprintf(stderr, "[ERROR] %s\n", ex);
+        std::string ans =   "HTTP/1.1 500 Internal Server Error\r\n"
+                            "Content-Type: text/html\r\n\r\n"
+                            "<script>window.location.href = \"http://localhost:42069/\";</script>\r\n";
+        send(r->socket_fd, ans.c_str(), ans.size(), 0);
+        return;
     }
 }
 
