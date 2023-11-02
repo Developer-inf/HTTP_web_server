@@ -5,12 +5,15 @@
 #include <string.h>
 #include <unistd.h>
 #include <pqxx/pqxx>
+#include <filesystem>
 #include "request.h"
 #include "errors.h"
 #include "CGI/add.cpp"
 #include "CGI/get.cpp"
 
 #define DELIMS "--------------------"
+
+namespace fs = std::filesystem;
 
 // char **SplitPOSTBody(Request *r) {
 //     char **ans = nullptr;
@@ -122,11 +125,11 @@ std::string get_daytime()
     return time;
 }
 
-std::string MakeHeader(std::string &&type, int body_length) {
+inline std::string MakeHeader(std::string &&type, int body_length) {
     return  "HTTP/1.1 200 OK\r\n"
             "Date: " + get_daytime() + "\r\n"
             "Content-Type: " + type + "; charset=utf-8\r\n"
-            "Content-Length: " + std::to_string(body_length) + "\r\n\n";
+            "Content-Length: " + std::to_string(body_length) + "\r\n\r\n";
 }
 
 void render(int socket_fd, std::string &&filename, std::string &&header_type) {
@@ -154,6 +157,19 @@ void render(int socket_fd, std::string &&filename, std::string &&header_type) {
     response = header + response;
     send(socket_fd, response.c_str(), response.length(), 0);
     fprintf(stdout, "SENT:\n\n%s\n\n", header.c_str());
+}
+
+void get_files(Request *r) {
+    std::string resp = "", file = "";
+    
+    std::string path = "./files";
+    for (const auto & entry : fs::directory_iterator(path)) {
+        file = entry.path().string();
+        resp += file.substr(file.find_last_of('/') + 1) + ':' + std::to_string(entry.file_size()) + '\n';
+    }
+    
+    resp = MakeHeader("text/plain", resp.size() - 1) + resp;
+    send(r->socket_fd, resp.c_str(), resp.size() - 1, 0);
 }
 
 void load_file(Request *r) {

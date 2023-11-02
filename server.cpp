@@ -19,40 +19,7 @@
 
 
 #define PORT 42069
-
-
-// Request *ParseRequest(std::string &&request, int socket_fd) {
-//     static Request r;
-//     r.socket_fd = socket_fd;
-//     r.method = request.substr(0, request.find(' '));
-//     std::transform(r.method.begin(), r.method.end(), r.method.begin(), ::toupper);
-//     r.path = request.substr(
-//                 r.method.length() + 1, 
-//                 request.find(' ', r.method.length() + 1) - r.method.length() - 1
-//             );
-    
-//     int idx = 0;
-    
-//     if ((idx = request.find("Referer")) > 0) {
-//         idx = request.find(' ', idx) + 1;
-//         r.referer = request.substr(idx, request.find('\n', idx) - idx);
-//         // printf("\n\nREFERER:\t%s\n\n", r.referer.c_str());
-//     } else { r.referer = ""; }
-    
-//     idx = request.find("\r\n\r\n");
-//     if (idx == std::string::npos) {
-//         idx = request.find("\r\n\n");
-//         if (idx == std::string::npos) {
-//             r.body = "";
-//         } else {
-//             r.body = request.substr(idx + 3);
-//         }
-//     } else {
-//         r.body = request.substr(idx + 4);
-//     }
-    
-//     return &r;
-// }
+#define BUFFSIZE 4096
 
 
 int main(int argc, char const *argv[])
@@ -62,11 +29,11 @@ int main(int argc, char const *argv[])
     struct sockaddr_in address;
     int opt = 1;
     int addrlen = sizeof(address);
-    char buffer[1024] = { 0 };
+    char buffer[BUFFSIZE] = { 0 };
     // char* hello = "Hello from server";
     std::string response;
     std::string string_buffer;
-    // string_buffer.reserve(1024);
+    string_buffer.reserve(BUFFSIZE);
     
     // Creating socket file descriptor
     if ((server_fd = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
@@ -117,7 +84,7 @@ int main(int argc, char const *argv[])
         string_buffer = "";
         do {
             std::fill_n(buffer, sizeof(buffer), 0);
-            valread = read(new_socket, buffer, 1024);
+            valread = read(new_socket, buffer, BUFFSIZE);
             string_buffer += buffer;
         } while (valread >= sizeof(buffer));
         
