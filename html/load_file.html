@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="css.css">
+    <script src="send-file-script" defer></script>
+    <title>Load file</title>
+</head>
+<body>
+    <a href="/" class="back_btn">На главную</a>
+    <form action="load-file" method="post" class="flex centerv vertical add_form">
+        <p class="w100">
+            <label for="file">Файл:</label>
+            <input type="file" name="file" id="file">
+        </p>
+        <input type="button" onclick="SendFile(this)" value="Загрузить" class="w100 h10">
+    </form>
+</body>
+</html>

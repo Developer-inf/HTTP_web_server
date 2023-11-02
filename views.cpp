@@ -156,6 +156,18 @@ void render(int socket_fd, std::string &&filename, std::string &&header_type) {
     fprintf(stdout, "SENT:\n\n%s\n\n", header.c_str());
 }
 
+void load_file(Request *r) {
+    int lf = r->body.find('\n');
+    std::string filename = "./files/" + r->body.substr(0, lf);
+    std::string data = r->body.substr(lf + 1);
+    
+    std::ofstream file(filename);
+    file << data;
+    file.close();
+    std::string resp = "HTTP/1.1 200 Ok\r\n";
+    send(r->socket_fd, resp.c_str(), resp.size(), 0);
+}
+
 void check_data_page(Request *r) {
     if (r->method == "POST") {
         r->path = "/get.cgi";
@@ -192,7 +204,7 @@ void sign_in(Request *r) {
             throw("User doesn't exist!");
         }
         std::string session_id = std::to_string(rand());
-        std::string ans = "HTTP/1.1 200 Ok\r\nSet-Cookie: session_id=" + session_id + "; Max-Age=300\r\n"
+        std::string ans = "HTTP/1.1 200 Ok\r\nSet-Cookie: session_id=" + session_id + "; Max-Age=3000\r\n"
                 "Content-Type: text/html\r\n\r\n"
                 "<script>window.location.href = \"http://localhost:42069/\";</script>\r\n";
         send(r->socket_fd, ans.c_str(), ans.size(), 0);

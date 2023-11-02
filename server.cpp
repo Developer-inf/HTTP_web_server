@@ -57,13 +57,16 @@
 
 int main(int argc, char const *argv[])
 {
-    int server_fd, new_socket, valread;
+    int server_fd, new_socket;
+    ssize_t valread;
     struct sockaddr_in address;
     int opt = 1;
     int addrlen = sizeof(address);
     char buffer[1024] = { 0 };
     // char* hello = "Hello from server";
     std::string response;
+    std::string string_buffer;
+    // string_buffer.reserve(1024);
     
     // Creating socket file descriptor
     if ((server_fd = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
@@ -111,11 +114,15 @@ int main(int argc, char const *argv[])
             continue;
         }
         
-        std::fill_n(buffer, sizeof(buffer), 0);
-        valread = read(new_socket, buffer, 1024);
-        fprintf(stderr, DELIMS "RECIEVED:" DELIMS "\n\n%s\n", buffer);
+        string_buffer = "";
+        do {
+            std::fill_n(buffer, sizeof(buffer), 0);
+            valread = read(new_socket, buffer, 1024);
+            string_buffer += buffer;
+        } while (valread >= sizeof(buffer));
         
-        Request request = Request(std::string(buffer), new_socket);
+        fprintf(stderr, DELIMS "RECIEVED:" DELIMS "\n\n%s\n", string_buffer.c_str());
+        Request request = Request(std::move(string_buffer), new_socket);
         std::vector<std::string> allowed_urls = { "/sign-in", "/css.css", "/favicon.ico" };
         
         if (request.cookie.empty() && std::find(allowed_urls.begin(), allowed_urls.end(), request.path) == allowed_urls.end()) {
