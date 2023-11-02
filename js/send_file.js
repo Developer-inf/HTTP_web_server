@@ -1,10 +1,7 @@
 async function SendFile(inp)
 {
     let xhr = new XMLHttpRequest();
-    let formData = new FormData();
     let data = file.files[0];
-    
-    formData.append("data", data);
     
     xhr.onreadystatechange = state => {
         if (xhr.status === 200) {

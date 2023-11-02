@@ -12,6 +12,7 @@ void UrlToPage(Request *r) {
     else if (r->path == "/get_files.js")    { render(r->socket_fd, "js/get_files.js",       "text/javascript"); }
     else if (r->path == "/load-file-page")  { render(r->socket_fd, "html/load_file.html",   "text/html"); }
     else if (r->path == "/send-file-script"){ render(r->socket_fd, "js/send_file.js",       "text/javascript"); }
+    else if (r->path == "/sign-in.js")      { render(r->socket_fd, "js/sign_in.js",         "text/javascript"); }
     else if (r->path == "/get-files")       { get_files(r); }
     else if (r->path == "/load-file")       { load_file(r); }
     else if (r->path == "/check-data")      { check_data_page(r); }

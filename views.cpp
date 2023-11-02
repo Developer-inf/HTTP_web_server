@@ -15,32 +15,6 @@
 
 namespace fs = std::filesystem;
 
-// char **SplitPOSTBody(Request *r) {
-//     char **ans = nullptr;
-//     std::vector<int> args;
-    
-//     size_t i = 0, j = 0;
-//     while (i < r->body.length()) {
-//         if (r->body[i] == '&') {
-//             args.emplace_back(i);
-//         }
-//         i++;
-//     }
-    
-//     i = 1;
-//     ans = new char *[args.size() + 3];
-//     for (int pos : args) {
-//         ans[i] = strdup(r->body.substr(j, pos - j).c_str());
-//         j = pos + 1;
-//         i++;
-//     }
-//     ans[i++] = strdup(r->body.substr(j).c_str());
-//     ans[i] = NULL;
-//     ans[0] = strdup(r->path.c_str());
-    
-//     return ans;
-// }
-
 void escaped_print(std::string &&str) {
     for (size_t i = 0; i < str.size(); i++) {
         u_char c = str[i];
@@ -217,6 +191,7 @@ void sign_in(Request *r) {
         pqxx::work worker(conn);
         pqxx::result res(worker.exec(query));
         if (res.size() < 1) {
+            fprintf(stderr, "QUERY: %s\n", query.c_str());
             throw("User doesn't exist!");
         }
         std::string session_id = std::to_string(rand());

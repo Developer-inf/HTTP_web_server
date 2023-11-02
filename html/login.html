@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="css.css">
+    <script src="sign-in.js" defer></script>
     <title>Login page</title>
 </head>
 <body>
@@ -16,7 +17,7 @@
             <label for="pass">Пароль:</label>
             <input type="password" name="pass" value="" id="pass" class="w100 h10">
         </p>
-        <input type="submit" value="Добавить" class="submit_btn w100 h10">
+        <input type="submit" onclick="sign_in(this)" id="submit" value="Добавить" class="submit_btn w100 h10">
     </form>
 </body>
 </html>
