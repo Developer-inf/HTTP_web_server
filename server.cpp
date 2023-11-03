@@ -34,6 +34,7 @@ int main(int argc, char const *argv[])
     std::string response;
     std::string string_buffer;
     string_buffer.reserve(BUFFSIZE);
+    std::vector<std::string> allowed_urls = { "/sign-in", "/sign-in.js", "/css.css", "/sign-up-page", "/sign-up", "/sign-up.js", "/favicon.ico" };
     
     // Creating socket file descriptor
     if ((server_fd = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
@@ -90,7 +91,6 @@ int main(int argc, char const *argv[])
         
         fprintf(stderr, DELIMS "RECIEVED:" DELIMS "\n\n%s\n", string_buffer.c_str());
         Request request = Request(std::move(string_buffer), new_socket);
-        std::vector<std::string> allowed_urls = { "/sign-in", "/sign-in.js", "/css.css", "/favicon.ico" };
         
         if (request.cookie.empty() && std::find(allowed_urls.begin(), allowed_urls.end(), request.path) == allowed_urls.end()) {
             render(request.socket_fd, "html/login.html", "text/html");

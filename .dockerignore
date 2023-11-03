@@ -4,3 +4,4 @@ Dockerfile
 create_fill_db.sh
 migrations
 .dockerignore
+README.md

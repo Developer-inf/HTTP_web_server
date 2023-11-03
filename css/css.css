@@ -71,11 +71,23 @@ th, tr, td {
 
 .submit_btn {
     width: 100%;
+    padding: 10px;
+    background-color: transparent;
+    border-radius: 5px;
+    border: 1px solid black;
+    color: #3254db;
+    font-size: 16px;
+}
+
+.submit_btn:hover {
+    cursor: pointer;
 }
 
 .add_form {
     height: 10vh;
-    width: 15vw;
+    /* width: 15vw; */
+    width: min-content;
+    min-width: 200px;
     justify-content: space-between;
 }
 
@@ -85,4 +97,16 @@ th, tr, td {
 
 input {
     box-sizing: border-box;
+}
+
+.reg_btn {
+    text-decoration: none;
+    text-align: center;
+    color: #3254db;
+    border: 1px solid black;
+    border-radius: 5px;
+    padding: 10px;
+    width: 100%;
+    box-sizing: border-box;
+    margin-top: 20px;
 }

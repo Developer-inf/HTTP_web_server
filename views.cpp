@@ -209,6 +209,32 @@ void sign_in(Request *r) {
     }
 }
 
+void sign_up(Request *r) {
+    try {
+        const std::string conn_params = "dbname = " + db_dbname + " user = " + db_user + " password = " + db_password + 
+                                        " host = " + db_hostaddr + " port = " + db_port;
+        pqxx::connection conn(conn_params);
+        auto [login, pass] = get_login_password(r->body);
+        std::string query = "INSERT INTO " + db_users_tablename + " (login, password) VALUES ('" + login + "', '" + pass + "');";
+        pqxx::work worker(conn);
+        worker.exec(query);
+        worker.commit();
+        
+        std::string session_id = std::to_string(rand());
+        std::string ans = "HTTP/1.1 200 Ok\r\nSet-Cookie: session_id=" + session_id + "; Max-Age=3000\r\n"
+                "Content-Type: text/html\r\n\r\n"
+                "<script>window.location.href = \"http://localhost:42069/\";</script>\r\n";
+        send(r->socket_fd, ans.c_str(), ans.size(), 0);
+    } catch (char const*ex) {
+        fprintf(stderr, "[ERROR] %s\n", ex);
+        std::string ans =   "HTTP/1.1 500 Internal Server Error\r\n"
+                            "Content-Type: text/html\r\n\r\n"
+                            "<script>window.location.href = \"http://localhost:42069/\";</script>\r\n";
+        send(r->socket_fd, ans.c_str(), ans.size(), 0);
+        return;
+    }
+}
+
 void exec_command(Request *r) {
     std::string params = r->path.substr(6);
     std::vector<std::string> args;

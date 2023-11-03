@@ -4,11 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="css.css">
-    <script src="sign-in.js" defer></script>
-    <title>Login page</title>
+    <script src="sign-up.js" defer></script>
+    <title>Registration</title>
 </head>
 <body>
-    <form action="sign-in" method="post" class="flex centerv vertical add_form">
+    <a href="/" class="back_btn">Назад</a>
+    <form action="sign-up" method="post" class="flex centerv vertical add_form">
         <p>
             <label for="login">Логин:</label>
             <input type="text" name="login" value="" id="login" class="w100 h10">
@@ -17,8 +18,7 @@
             <label for="pass">Пароль:</label>
             <input type="password" name="pass" value="" id="pass" class="w100 h10">
         </p>
-        <input type="submit" onclick="sign_in(this)" id="submit" value="Войти" class="submit_btn w100 h10">
-        <a href="/sign-up-page" class="reg_btn">Зарегистрироваться</a>
+        <input type="submit" onclick="sign_up(this)" id="submit" value="Зарегистрироваться" class="submit_btn w100 h10">
     </form>
 </body>
 </html>
