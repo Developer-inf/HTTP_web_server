@@ -1,3 +1,4 @@
+#include <iostream>
 #include <string>
 #include <fstream>
 #include <sys/socket.h>
@@ -194,8 +195,9 @@ void sign_in(Request *r) {
             fprintf(stderr, "QUERY: %s\n", query.c_str());
             throw("User doesn't exist!");
         }
-        std::string session_id = std::to_string(rand());
-        std::string ans = "HTTP/1.1 200 Ok\r\nSet-Cookie: session_id=" + session_id + "; Max-Age=3000\r\n"
+        std::string person_id = res.begin()[0].as<std::string>();
+        // std::string person_id = std::to_string(rand());
+        std::string ans = "HTTP/1.1 200 Ok\r\nSet-Cookie: person_id=" + person_id + "; Max-Age=30\r\n"
                 "Content-Type: text/html\r\n\r\n"
                 "<script>window.location.href = \"http://localhost:42069/\";</script>\r\n";
         send(r->socket_fd, ans.c_str(), ans.size(), 0);
@@ -218,10 +220,13 @@ void sign_up(Request *r) {
         std::string query = "INSERT INTO " + db_users_tablename + " (login, password) VALUES ('" + login + "', '" + pass + "');";
         pqxx::work worker(conn);
         worker.exec(query);
+        
+        query = "SELECT person_id FROM " + db_users_tablename + " WHERE login = '" + login + "' and password = '" + pass + "' LIMIT 1;";
+        pqxx::result res(worker.exec(query));
+        std::string person_id = res.begin()[0].as<std::string>();
         worker.commit();
         
-        std::string session_id = std::to_string(rand());
-        std::string ans = "HTTP/1.1 200 Ok\r\nSet-Cookie: session_id=" + session_id + "; Max-Age=3000\r\n"
+        std::string ans = "HTTP/1.1 200 Ok\r\nSet-Cookie: person_id=" + person_id + "; Max-Age=30\r\n"
                 "Content-Type: text/html\r\n\r\n"
                 "<script>window.location.href = \"http://localhost:42069/\";</script>\r\n";
         send(r->socket_fd, ans.c_str(), ans.size(), 0);

@@ -18,8 +18,8 @@ void CheckValuesForExists(std::map<std::string, std::string> &values, pqxx::conn
     }
 }
 
-void InsertValuesInDB(std::map<std::string, std::string> &values, pqxx::connection &conn) {
-    std::string query = "INSERT INTO " + db_tablename + " (str, num) VALUES ('" + values["str"] + "', " + values["num"] + ");";
+void InsertValuesInDB(std::map<std::string, std::string> &values, pqxx::connection &conn, std::string &person_id) {
+    std::string query = "INSERT INTO " + db_tablename + " (str, num, person_id) VALUES ('" + values["str"] + "', " + values["num"] + ", " + person_id + ");";
     pqxx::work worker(conn);
     
     worker.exec(query);
@@ -51,7 +51,7 @@ int AddCGI(Request &req, std::map<std::string, std::string> &keys_values) {
         // }
         
         CheckValuesForExists(keys_values, conn);
-        InsertValuesInDB(keys_values, conn);
+        InsertValuesInDB(keys_values, conn, req.cookie["person_id"]);
         
         fprintf(stderr, "[SUCCESS] Record successfulyy added\n");
         
