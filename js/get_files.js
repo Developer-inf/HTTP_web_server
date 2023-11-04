@@ -3,6 +3,10 @@ let units_list = ["B", "Kb", "Mb", "Gb", "Tb"];
 fetch("/get-files", { method: "GET" })
 .then(resp => resp.text())
 .then(txt => {
+    if (txt.length <= 0) {
+        return;
+    }
+    
     let tbody = document.getElementsByTagName("tbody")[0];
     tbody.innerHTML = "";
     

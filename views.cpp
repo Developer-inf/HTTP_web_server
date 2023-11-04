@@ -197,7 +197,7 @@ void sign_in(Request *r) {
         }
         std::string person_id = res.begin()[0].as<std::string>();
         // std::string person_id = std::to_string(rand());
-        std::string ans = "HTTP/1.1 200 Ok\r\nSet-Cookie: person_id=" + person_id + "; Max-Age=30\r\n"
+        std::string ans = "HTTP/1.1 200 Ok\r\nSet-Cookie: person_id=" + person_id + "; Max-Age=3000\r\n"
                 "Content-Type: text/html\r\n\r\n"
                 "<script>window.location.href = \"http://localhost:42069/\";</script>\r\n";
         send(r->socket_fd, ans.c_str(), ans.size(), 0);
@@ -226,7 +226,7 @@ void sign_up(Request *r) {
         std::string person_id = res.begin()[0].as<std::string>();
         worker.commit();
         
-        std::string ans = "HTTP/1.1 200 Ok\r\nSet-Cookie: person_id=" + person_id + "; Max-Age=30\r\n"
+        std::string ans = "HTTP/1.1 200 Ok\r\nSet-Cookie: person_id=" + person_id + "; Max-Age=3000\r\n"
                 "Content-Type: text/html\r\n\r\n"
                 "<script>window.location.href = \"http://localhost:42069/\";</script>\r\n";
         send(r->socket_fd, ans.c_str(), ans.size(), 0);

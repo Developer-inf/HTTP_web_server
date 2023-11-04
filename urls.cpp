@@ -15,6 +15,7 @@ void UrlToPage(Request *r) {
     else if (r->path == "/sign-in.js")      { render(r->socket_fd, "js/sign_in.js",         "text/javascript"); }
     else if (r->path == "/sign-up.js")      { render(r->socket_fd, "js/sign_up.js",         "text/javascript"); }
     else if (r->path == "/sign-up-page")    { render(r->socket_fd, "html/register.html",    "text/html"); }
+    else if (r->path == "/delete-cookie.js"){ render(r->socket_fd, "js/delete_cookie.js",   "text/javascript"); }
     else if (r->path == "/get-files")       { get_files(r); }
     else if (r->path == "/load-file")       { load_file(r); }
     else if (r->path == "/check-data")      { check_data_page(r); }

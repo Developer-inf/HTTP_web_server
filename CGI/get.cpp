@@ -7,8 +7,8 @@
 
 typedef std::vector<std::pair<std::string, std::string>> request_result;
 
-request_result get_data(pqxx::connection &conn) {
-    std::string query = "SELECT * FROM " + db_tablename + ";";
+request_result get_data(pqxx::connection &conn, std::string &person_id) {
+    std::string query = "SELECT * FROM " + db_tablename + " WHERE person_id = " + person_id + ";";
     pqxx::work worker(conn);
     pqxx::result res(worker.exec(query));
     request_result ret;
@@ -36,7 +36,7 @@ int GetCGI(Request &req, std::map<std::string, std::string> &keys_values) {
             throw "Cant open test db";
         }
         
-        request_result keys_values = get_data(conn);
+        request_result keys_values = get_data(conn, req.cookie["person_id"]);
         // std::map<std::string, std::string> keys_values;
         
         std::string response;

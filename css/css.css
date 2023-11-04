@@ -69,6 +69,11 @@ th, tr, td {
     color: rgb(0, 91, 211);
 }
 
+.exit_btn {
+    left: auto;
+    right: 50px;
+}
+
 .submit_btn {
     width: 100%;
     padding: 10px;
