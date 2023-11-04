@@ -135,12 +135,18 @@ void render(int socket_fd, std::string &&filename, std::string &&header_type) {
 }
 
 void get_files(Request *r) {
-    std::string resp = "", file = "";
+    std::string resp = "", filename = "", person_id = "", file = "";
+    int id_start = 0;
     
     std::string path = "./files";
     for (const auto & entry : fs::directory_iterator(path)) {
-        file = entry.path().string();
-        resp += file.substr(file.find_last_of('/') + 1) + ':' + std::to_string(entry.file_size()) + '\n';
+        filename = entry.path().string();
+        filename = filename.substr(filename.find_last_of('/') + 1);
+        id_start = filename.find_last_of('.');
+        person_id = filename.substr(id_start + 1);
+        if (person_id != r->cookie["person_id"]) continue;
+        file = filename.substr(0, id_start);
+        resp += file + ':' + std::to_string(entry.file_size()) + '\n';
     }
     
     resp = MakeHeader("text/plain", resp.size() - 1) + resp;
@@ -149,7 +155,7 @@ void get_files(Request *r) {
 
 void load_file(Request *r) {
     int lf = r->body.find('\n');
-    std::string filename = "./files/" + r->body.substr(0, lf);
+    std::string filename = "./files/" + r->body.substr(0, lf) + '.' + r->cookie["person_id"];
     std::string data = r->body.substr(lf + 1);
     
     std::ofstream file(filename);
