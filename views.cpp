@@ -157,9 +157,33 @@ void load_file(Request *r) {
     int lf = r->body.find('\n');
     std::string filename = "./files/" + r->body.substr(0, lf) + '.' + r->cookie["person_id"];
     std::string data = r->body.substr(lf + 1);
+    std::string dataRange = r->header.at("Content-Range");
+    int dashPos = dataRange.find('-');
+    data += ',';
     
-    std::ofstream file(filename);
-    file << data;
+    std::vector<char> file_data;
+    file_data.reserve(data.size());
+    for (size_t i = 0, s = 0; i < data.size(); i++) {
+        if (data[i] == ',') {
+            data[i] = '\0';
+            file_data.emplace_back(std::atoi(&data[s]));
+            s = i + 1;
+        }
+    }
+    
+    std::ofstream file;
+    if (std::ifstream(filename).good()) {
+        file.open(filename, std::ios::app);
+    } else {
+        file.open(filename);
+    }
+    
+    int minSize = std::atoi(dataRange.substr(0, dashPos).c_str());
+    while (fs::file_size(filename) + 10 < minSize) {
+        usleep(1'000);
+    }
+    
+    file.write(file_data.data(), file_data.size() * sizeof(char));
     file.close();
     std::string resp = "HTTP/1.1 200 Ok\r\n";
     send(r->socket_fd, resp.c_str(), resp.size(), 0);

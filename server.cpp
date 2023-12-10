@@ -83,13 +83,20 @@ int main(int argc, char const *argv[])
         }
         
         string_buffer = "";
+        int i = 0;
         do {
             std::fill_n(buffer, sizeof(buffer), 0);
             valread = read(new_socket, buffer, BUFFSIZE);
+            
+            if (valread == 0) {
+                fprintf(stderr, "ZERO\n");
+            }
+            
             string_buffer += buffer;
+            // fprintf(stderr, "iter: %d\t string (%ld b):\n%s\n", i++, std::string(buffer).size(), std::string(buffer).c_str());
         } while (valread >= sizeof(buffer));
         
-        fprintf(stderr, DELIMS "RECIEVED:" DELIMS "\n\n%s\n", string_buffer.c_str());
+        fprintf(stderr, DELIMS "RECIEVED (%ld b):" DELIMS "\n\n%s\n", string_buffer.size(), string_buffer.c_str());
         Request request = Request(std::move(string_buffer), new_socket);
         
         if (request.cookie.empty() && std::find(allowed_urls.begin(), allowed_urls.end(), request.path) == allowed_urls.end()) {
