@@ -27,4 +27,6 @@ async function SendFile(inp)
         
         xhr.send(resp);
     }
+    
+    file.value = "";
 }

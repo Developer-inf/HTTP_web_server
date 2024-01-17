@@ -18,10 +18,6 @@
 #include "errors.h"
 
 
-#define PORT 42069
-#define BUFFSIZE 4096
-
-
 int main(int argc, char const *argv[])
 {
     int server_fd, new_socket;

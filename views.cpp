@@ -172,10 +172,16 @@ void load_file(Request *r) {
     }
     
     std::ofstream file;
-    if (std::ifstream(filename).good()) {
-        file.open(filename, std::ios::app);
-    } else {
+    int filePart = std::atoi(r->header.at("Content-Part").c_str());
+    if (filePart == 0) {
         file.open(filename);
+    }
+    else if (std::ifstream(filename).good()) {
+        file.open(filename, std::ios::app);
+    }
+    else {
+        fprintf(stderr, "Can't open file \"%s\n\"", filename.c_str());
+        return;
     }
     
     int minSize = std::atoi(dataRange.substr(0, dashPos).c_str());
