@@ -48,22 +48,64 @@ void escaped_print(std::string &&str) {
     }
     printf("\n");
 }
+void escaped_print(std::vector<char> &&str) {
+    for (size_t i = 0; i < str.size(); i++) {
+        u_char c = str[i];
+        switch (c)
+        {
+            case '\\':
+                printf("\\\\");
+                break;
+            case '\n':
+                printf("\\n");
+                break;
+            case '\r':
+                printf("\\r");
+                break;
+            case '\t':
+                printf("\\t");
+                break;
+            case '\0':
+                printf("\\0");
+                break;
+            
+            default:
+                if (isprint(c)) {
+                    putchar(c);
+                } else {
+                    printf("\\x%X", c);
+                }
+                break;
+        }
+    }
+    printf("\n");
+}
 
 std::map<std::string, std::string> SplitPOSTBody(Request *r) {
     std::map<std::string, std::string> ans;
-    std::vector<int> args;
+    std::vector<std::vector<char>::iterator> argsIters;
     
-    for (size_t i = 0; i <= r->body.size(); i++) {
-        if (r->body[i] == '&' || r->body[i] == '\0' || r->body[i] == '\n' || r->body[i] == '\r') {
-            args.emplace_back(i);
+    for (auto b = r->body.begin(); b != r->body.end(); b++) {
+        if (*b == '&' || *b == '\0' || *b == '\n' || *b == '\r') {
+            argsIters.emplace_back(b);
         }
     }
     
-    size_t eq_char = 0, key_start = 0;
-    for (int and_char : args) {
-        eq_char = r->body.find_first_of("=\0\r\n", key_start);
-        ans[r->body.substr(key_start, eq_char - key_start)] = r->body.substr(eq_char + 1, and_char - eq_char - 1);
-        key_start = and_char + 1;
+    std::vector<char>::iterator eqIter, startIter = r->body.begin();
+    for (auto chIter = r->body.begin(); chIter != r->body.end() && *chIter != '\0'; chIter++) {
+        if (*chIter == '=') {
+            eqIter = chIter;
+        }
+        else if (*chIter == '\r' || *chIter == '\n' || *chIter == '\0') {
+            std::string key = std::move(std::string(startIter, eqIter));
+            std::string val = std::move(std::string(eqIter + 1, chIter));
+            ans[key] = val;
+            
+            while (*chIter == '\r' || *chIter == '\n' || *chIter == '\0') {
+                chIter++;
+            }
+            startIter = chIter;
+        }
     }
     ans["path"] = r->path;
     
@@ -154,44 +196,41 @@ void get_files(Request *r) {
 }
 
 void load_file(Request *r) {
-    int lf = r->body.find('\n');
-    std::string filename = "./files/" + r->body.substr(0, lf) + '.' + r->cookie["person_id"];
-    std::string data = r->body.substr(lf + 1);
-    std::string dataRange = r->header.at("Content-Range");
-    int dashPos = dataRange.find('-');
-    data += ',';
+    std::string endHeader = "\r\n\r\n";
     
-    std::vector<char> file_data;
-    file_data.reserve(data.size());
-    for (size_t i = 0, s = 0; i < data.size(); i++) {
-        if (data[i] == ',') {
-            data[i] = '\0';
-            file_data.emplace_back(std::atoi(&data[s]));
-            s = i + 1;
-        }
-    }
+    auto endHeaderIter = std::search(r->body.begin(), r->body.end(), endHeader.begin(), endHeader.end());
+    auto endBoundaryIter = std::search(r->body.begin(), r->body.end(), endHeader.begin(), endHeader.begin() + 2);
+    auto endContentDisposition = std::search(endBoundaryIter + 2, endHeaderIter, endHeader.begin(), endHeader.begin() + 2);
+    // find boundary
+    std::vector<char> boundary(r->body.begin(), endBoundaryIter);
     
+    // find filename
+    std::string name = "filename=\"";
+    auto nameStart = std::search(endBoundaryIter + 2, endContentDisposition, name.begin(), name.end()) + name.size();
+    auto nameEnd = std::find(nameStart, endContentDisposition, '"');
+    std::string filename(nameStart, nameEnd);
+    filename = "files/" + filename + '.' + r->cookie["person_id"];
+    
+    // get binary data
+    auto endDataIter = std::search(endHeaderIter, r->body.end(), boundary.begin(), boundary.end()) - 2;
+    std::vector<char> fileData(endHeaderIter + 4, endDataIter);
+    
+    // write to file
     std::ofstream file;
-    int filePart = std::atoi(r->header.at("Content-Part").c_str());
-    if (filePart == 0) {
-        file.open(filename);
-    }
-    else if (std::ifstream(filename).good()) {
-        file.open(filename, std::ios::app);
-    }
-    else {
-        fprintf(stderr, "Can't open file \"%s\n\"", filename.c_str());
-        return;
-    }
+    // if (std::ifstream(filename).good()) {
+    //     file.open(filename, std::ios::app);
+    // }
+    // else {
+    //     file.open(filename);
+    // }
+    file.open(filename);
     
-    int minSize = std::atoi(dataRange.substr(0, dashPos).c_str());
-    while (fs::file_size(filename) + 10 < minSize) {
-        usleep(1'000);
-    }
-    
-    file.write(file_data.data(), file_data.size() * sizeof(char));
+    file.write(fileData.data(), fileData.size() * sizeof(char));
     file.close();
-    std::string resp = "HTTP/1.1 200 Ok\r\n";
+    
+    std::string resp =  "HTTP/1.1 200 Ok\r\n"
+                        "Content-Type: text/html\r\n\r\n"
+                        "<script>window.location.href = \"http://localhost:42069/load-file-page\";</script>\r\n";
     send(r->socket_fd, resp.c_str(), resp.size(), 0);
 }
 
@@ -223,7 +262,8 @@ void sign_in(Request *r) {
         const std::string conn_params = "dbname = " + db_dbname + " user = " + db_user + " password = " + db_password + 
                                         " host = " + db_hostaddr + " port = " + db_port;
         pqxx::connection conn(conn_params);
-        auto [login, pass] = get_login_password(r->body);
+        std::string bodyStr = std::string(r->body.begin(), r->body.end());
+        auto [login, pass] = get_login_password(bodyStr);
         std::string query = "SELECT * FROM " + db_users_tablename + " WHERE login = '" + login + "' and password = '" + pass + "';";
         pqxx::work worker(conn);
         pqxx::result res(worker.exec(query));
@@ -252,7 +292,8 @@ void sign_up(Request *r) {
         const std::string conn_params = "dbname = " + db_dbname + " user = " + db_user + " password = " + db_password + 
                                         " host = " + db_hostaddr + " port = " + db_port;
         pqxx::connection conn(conn_params);
-        auto [login, pass] = get_login_password(r->body);
+        std::string bodyStr = std::string(r->body.begin(), r->body.end());
+        auto [login, pass] = get_login_password(bodyStr);
         std::string query = "INSERT INTO " + db_users_tablename + " (login, password) VALUES ('" + login + "', '" + pass + "');";
         pqxx::work worker(conn);
         worker.exec(query);

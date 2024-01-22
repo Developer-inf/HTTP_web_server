@@ -54,31 +54,26 @@ public:
     std::string version;
     std::map<std::string, std::string> header;
     std::map<std::string, std::string> cookie;
-    std::string body;
+    std::vector<char> body;
     int socket_fd;
     
-    Request(std::string &&req, int socket_fd);
+    Request(std::vector<char> &&req, int socket_fd);
     ~Request();
 };
 
-Request::Request(std::string &&req, int socket_fd) {
+Request::Request(std::vector<char> &&req, int socket_fd) {
     this->socket_fd = socket_fd;
-    size_t end_pos = req.find("\r\n");
-    if (end_pos == std::string::npos) {
-        fprintf(stderr, "Can't parse request\n");
-        return;
+    
+    const char *headerEnd = "\r\n\r\n";
+    auto bodyDelim = std::search(req.begin(), req.end(), headerEnd, headerEnd + 4);
+    if (bodyDelim != req.end()) {
+        body.insert(body.end(), bodyDelim + 4, req.end());
+        req.erase(bodyDelim, req.end());
     }
     
-    parse_first_line(method, path, version, req);
-    parse_header(header, cookie, req);
-    try {
-        body = req.substr(2);
-    }
-    catch(const std::exception& e) {
-        printf("req: %s\n", req.c_str());
-        printf("body: %s\n", body.c_str());
-        // fprintf(stderr, "%s\n", e.what());
-    }
+    std::string reqStr(req.data());
+    parse_first_line(method, path, version, reqStr);
+    parse_header(header, cookie, reqStr);
 }
 
 Request::~Request() {

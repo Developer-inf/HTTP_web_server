@@ -89,6 +89,7 @@ th, tr, td {
 }
 
 .add_form {
+    min-height: max-content;
     height: 10vh;
     /* width: 15vw; */
     width: min-content;

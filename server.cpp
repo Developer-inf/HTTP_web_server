@@ -21,16 +21,9 @@
 int main(int argc, char const *argv[])
 {
     int server_fd, new_socket;
-    ssize_t valread;
     struct sockaddr_in address;
     int opt = 1;
     int addrlen = sizeof(address);
-    char buffer[BUFFSIZE] = { 0 };
-    // char* hello = "Hello from server";
-    std::string response;
-    std::string string_buffer;
-    string_buffer.reserve(BUFFSIZE);
-    std::vector<std::string> allowed_urls = { "/sign-in", "/sign-in.js", "/css.css", "/sign-up-page", "/sign-up", "/sign-up.js", "/favicon.ico" };
     
     // Creating socket file descriptor
     if ((server_fd = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
@@ -78,22 +71,28 @@ int main(int argc, char const *argv[])
             continue;
         }
         
-        string_buffer = "";
-        int i = 0;
-        do {
-            std::fill_n(buffer, sizeof(buffer), 0);
-            valread = read(new_socket, buffer, BUFFSIZE);
-            
-            if (valread == 0) {
-                fprintf(stderr, "ZERO\n");
-            }
-            
-            string_buffer += buffer;
-            // fprintf(stderr, "iter: %d\t string (%ld b):\n%s\n", i++, std::string(buffer).size(), std::string(buffer).c_str());
-        } while (valread >= sizeof(buffer));
+        ssize_t valread;
+        char buffer[BUFFSIZE] = { 0 };
+        // std::vector<char> buffer(BUFFSIZE, 0);
+        // char* hello = "Hello from server";
+        std::vector<char> vectorBuffer;
+        vectorBuffer.reserve(BUFFSIZE);
+        std::vector<std::string> allowed_urls = { "/sign-in", "/sign-in.js", "/css.css", "/sign-up-page", "/sign-up", "/sign-up.js", "/favicon.ico" };
         
-        fprintf(stderr, DELIMS "RECIEVED (%ld b):" DELIMS "\n\n%s\n", string_buffer.size(), string_buffer.c_str());
-        Request request = Request(std::move(string_buffer), new_socket);
+        struct timeval timeout;
+        timeout.tv_sec = 0;
+        timeout.tv_usec = 100'000;
+        setsockopt(new_socket, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout));
+        
+        do {
+            valread = recv(new_socket, buffer, BUFFSIZE, 0);
+            if (valread <= 0) break;
+            vectorBuffer.insert(vectorBuffer.end(), buffer, buffer + valread);
+        } while (valread > 0);
+        
+        fprintf(stderr, DELIMS "RECIEVED (%ld b):" DELIMS "\n\n%-*s\n", vectorBuffer.size(), static_cast<int>(vectorBuffer.size()), vectorBuffer.data());
+        fflush(stderr);
+        Request request = Request(std::move(vectorBuffer), new_socket);
         
         if (request.cookie.empty() && std::find(allowed_urls.begin(), allowed_urls.end(), request.path) == allowed_urls.end()) {
             render(request.socket_fd, "html/login.html", "text/html");

@@ -33,7 +33,6 @@ int AddCGI(Request &req, std::map<std::string, std::string> &keys_values) {
         const std::string conn_params = "dbname = " + db_dbname + " user = " + db_user + " password = " + db_password + 
                                         " host = " + db_hostaddr + " port = " + db_port;
         pqxx::connection conn(conn_params);
-        
         if (conn.is_open()) {
             fprintf(stderr, "[SUCCESS] Database \"test\" successfully opened!\n");
         } else {

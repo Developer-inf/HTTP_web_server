@@ -9,12 +9,14 @@
 </head>
 <body>
     <a href="/" class="back_btn">На главную</a>
-    <form action="load-file" method="post" class="flex centerv vertical add_form">
+    <form enctype="multipart/form-data" action="load-file" method="post" class="flex centerv vertical add_form">
         <p class="w100">
             <label for="file">Файл:</label>
             <input type="file" name="file" id="file">
         </p>
-        <input type="button" onclick="SendFile(this)" value="Загрузить" class="submit_btn w100 h10">
+        <!-- <input type="button" onclick="SendFile(this)" value="Загрузить" class="submit_btn w100 h10"> -->
+        <!-- <input type="button" value="Загрузить" class="submit_btn w100 h10" id="btn"> -->
+        <button type="submit" class="submit_btn w100 h10">Загрузить</button>
     </form>
 </body>
 </html>

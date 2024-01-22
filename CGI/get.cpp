@@ -49,7 +49,6 @@ int GetCGI(Request &req, std::map<std::string, std::string> &keys_values) {
                 "Content-Type: text/plain\r\n"
                 "Content-Length: %ld\r\n\r\n"
                 "%s", response.size(), response.c_str());
-        // printf("window.location.href = 'http://www.google.com';\r\n");
     } catch (char const *ex) {
         fprintf(stderr, "[ERROR] %s\n", ex);
         printf( "HTTP/1.1 500 Internal Server Error\r\n"

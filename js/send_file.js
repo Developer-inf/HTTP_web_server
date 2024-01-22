@@ -1,4 +1,4 @@
-async function SendFile(inp)
+async function SendFile1(inp)
 {
     const MAX_CHUNK_SIZE = 1024;
     let data = file.files[0];
@@ -29,4 +29,9 @@ async function SendFile(inp)
     }
     
     file.value = "";
+}
+
+async function SendFile(inp) {
+    let fileData = await file.files[0].arrayBuffer();
+    
 }
