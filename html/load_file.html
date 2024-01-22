@@ -13,10 +13,11 @@
         <p class="w100">
             <label for="file">Файл:</label>
             <input type="file" name="file" id="file">
+            <progress id="progressBar" value="0" max="100" style="width:100%;"></progress>
+            <p id="status"></p>
+            <p id="loaded_n_total"></p>
         </p>
-        <!-- <input type="button" onclick="SendFile(this)" value="Загрузить" class="submit_btn w100 h10"> -->
-        <!-- <input type="button" value="Загрузить" class="submit_btn w100 h10" id="btn"> -->
-        <button type="submit" class="submit_btn w100 h10">Загрузить</button>
+        <input type="button" value="Загрузить" onclick="uploadFile()" class="submit_btn w100 h10">
     </form>
 </body>
 </html>

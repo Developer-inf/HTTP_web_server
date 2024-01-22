@@ -81,7 +81,7 @@ int main(int argc, char const *argv[])
         
         struct timeval timeout;
         timeout.tv_sec = 0;
-        timeout.tv_usec = 100'000;
+        timeout.tv_usec = 20'000;
         setsockopt(new_socket, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout));
         
         do {
@@ -90,7 +90,12 @@ int main(int argc, char const *argv[])
             vectorBuffer.insert(vectorBuffer.end(), buffer, buffer + valread);
         } while (valread > 0);
         
-        fprintf(stderr, DELIMS "RECIEVED (%ld b):" DELIMS "\n\n%-*s\n", vectorBuffer.size(), static_cast<int>(vectorBuffer.size()), vectorBuffer.data());
+        if (vectorBuffer.size() < 1000) {
+            fprintf(stderr, DELIMS "RECIEVED (%ld b):" DELIMS "\n\n%-*s\n", vectorBuffer.size(), static_cast<int>(vectorBuffer.size()), vectorBuffer.data());
+        }
+        else {
+            fprintf(stderr, DELIMS "RECIEVED (%ld b):" DELIMS "\n\n%.*s ...\n", vectorBuffer.size(), 1000, vectorBuffer.data());
+        }
         fflush(stderr);
         Request request = Request(std::move(vectorBuffer), new_socket);
         

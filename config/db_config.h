@@ -13,6 +13,6 @@ const std::string db_port =      "5433";
 const std::string db_tablename = "record";
 const std::string db_users_tablename = "person";
 constexpr int PORT = 42069;
-constexpr int BUFFSIZE = 4096;
+constexpr int BUFFSIZE = 1024 * 16; // 16Kb
 
 #endif // _DB_CONFIG

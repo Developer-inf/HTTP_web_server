@@ -228,9 +228,9 @@ void load_file(Request *r) {
     file.write(fileData.data(), fileData.size() * sizeof(char));
     file.close();
     
-    std::string resp =  "HTTP/1.1 200 Ok\r\n"
-                        "Content-Type: text/html\r\n\r\n"
-                        "<script>window.location.href = \"http://localhost:42069/load-file-page\";</script>\r\n";
+    std::string resp =  "HTTP/1.1 200 Ok\r\n";
+                        // "Content-Type: text/html\r\n\r\n"
+                        // "<script>window.location.href = \"http://localhost:42069/load-file-page\";</script>\r\n";
     send(r->socket_fd, resp.c_str(), resp.size(), 0);
 }
 
